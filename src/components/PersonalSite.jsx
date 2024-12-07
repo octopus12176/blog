@@ -191,21 +191,21 @@ function PersonalSite() {
   const navItems = [
     {
       id: 'books',
-      label: '本',
+      label: '読書記録',
       emoji: '📚',
       bgSelected: 'bg-blue-100',
       color: 'text-gray-600',
     },
     {
       id: 'articles',
-      label: '記事',
+      label: '良記事',
       emoji: '📑',
       bgSelected: 'bg-purple-100',
       color: 'text-gray-600',
     },
     {
       id: 'thoughts',
-      label: '考え',
+      label: '考えていること',
       emoji: '💭',
       bgSelected: 'bg-yellow-100',
       color: 'text-gray-600',
@@ -278,7 +278,7 @@ function PersonalSite() {
         {/* メインコンテンツ */}
         <main className='flex-1 bg-gray-50 overflow-auto'>
           <div className='max-w-3xl mx-auto py-6 px-4 sm:px-8'>
-            {/* 本のセクション */}
+            {/* 読書記録のセクション */}
             {currentSection === 'books' && (
               <div className='space-y-6'>
                 <h2 className='text-2xl font-bold text-gray-900'>本</h2>
@@ -345,10 +345,10 @@ function PersonalSite() {
               </div>
             )}
 
-            {/* 記事のセクション */}
+            {/* 良記事のセクション */}
             {currentSection === 'articles' && (
               <div className='space-y-6'>
-                <h2 className='text-2xl font-bold text-gray-900'>記事</h2>
+                <h2 className='text-2xl font-bold text-gray-900'>良記事</h2>
                 <div className='space-y-4'>
                   {articles.map((article) => (
                     <div
@@ -418,10 +418,12 @@ function PersonalSite() {
               </div>
             )}
 
-            {/* 考えのセクション */}
+            {/* 考えていることセクション */}
             {currentSection === 'thoughts' && (
               <div className='space-y-6'>
-                <h2 className='text-2xl font-bold text-gray-900'>考え</h2>
+                <h2 className='text-2xl font-bold text-gray-900'>
+                  考えていること
+                </h2>
                 <div className='space-y-4'>
                   {thoughts.map((thought) => (
                     <div
