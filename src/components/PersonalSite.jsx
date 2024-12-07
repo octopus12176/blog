@@ -35,14 +35,14 @@ function PersonalSite() {
       setLoading(true);
       await Promise.all([fetchBooks(), fetchArticles(), fetchThoughts()]);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('データの読み込みに失敗しました:', error);
       setError('データの読み込みに失敗しました');
     } finally {
       setLoading(false);
     }
   };
 
-  // Books CRUD operations
+  // 本のCRUD操作
   const fetchBooks = async () => {
     const { data, error } = await supabase
       .from('books')
@@ -74,7 +74,7 @@ function PersonalSite() {
       setBooks([data[0], ...books]);
       setNewBook({ title: '', author: '', readDate: '', thoughts: '' });
     } catch (error) {
-      console.error('Error adding book:', error);
+      console.error('本の追加に失敗しました:', error);
       setError('本の追加に失敗しました');
     }
   };
@@ -86,12 +86,12 @@ function PersonalSite() {
       if (error) throw error;
       setBooks(books.filter((book) => book.id !== id));
     } catch (error) {
-      console.error('Error deleting book:', error);
+      console.error('本の削除に失敗しました:', error);
       setError('本の削除に失敗しました');
     }
   };
 
-  // Articles CRUD operations
+  // 記事のCRUD操作
   const fetchArticles = async () => {
     const { data, error } = await supabase
       .from('articles')
@@ -123,7 +123,7 @@ function PersonalSite() {
       setArticles([data[0], ...articles]);
       setNewArticle({ title: '', url: '', summary: '', dateRead: '' });
     } catch (error) {
-      console.error('Error adding article:', error);
+      console.error('記事の追加に失敗しました:', error);
       setError('記事の追加に失敗しました');
     }
   };
@@ -135,12 +135,12 @@ function PersonalSite() {
       if (error) throw error;
       setArticles(articles.filter((article) => article.id !== id));
     } catch (error) {
-      console.error('Error deleting article:', error);
+      console.error('記事の削除に失敗しました:', error);
       setError('記事の削除に失敗しました');
     }
   };
 
-  // Thoughts CRUD operations
+  // 考えのCRUD操作
   const fetchThoughts = async () => {
     const { data, error } = await supabase
       .from('thoughts')
@@ -170,7 +170,7 @@ function PersonalSite() {
       setThoughts([data[0], ...thoughts]);
       setNewThought({ content: '' });
     } catch (error) {
-      console.error('Error adding thought:', error);
+      console.error('考えの追加に失敗しました:', error);
       setError('考えの追加に失敗しました');
     }
   };
@@ -182,7 +182,7 @@ function PersonalSite() {
       if (error) throw error;
       setThoughts(thoughts.filter((thought) => thought.id !== id));
     } catch (error) {
-      console.error('Error deleting thought:', error);
+      console.error('考えの削除に失敗しました:', error);
       setError('考えの削除に失敗しました');
     }
   };
@@ -190,28 +190,28 @@ function PersonalSite() {
   const navItems = [
     {
       id: 'books',
-      label: '読書記録',
+      label: '本',
       emoji: '📚',
       bgSelected: 'bg-blue-100',
       color: 'text-gray-600',
     },
     {
       id: 'articles',
-      label: '良記事',
+      label: '記事',
       emoji: '📑',
       bgSelected: 'bg-purple-100',
       color: 'text-gray-600',
     },
     {
       id: 'thoughts',
-      label: '考えていること',
+      label: '考え',
       emoji: '💭',
       bgSelected: 'bg-yellow-100',
       color: 'text-gray-600',
     },
   ];
 
-  // インラインで削除ボタンを定義
+  // インラインの削除ボタン
   const renderDeleteButton = (onClickHandler) => (
     <button
       onClick={onClickHandler}
@@ -224,7 +224,7 @@ function PersonalSite() {
     </button>
   );
 
-  // Loading and error states
+  // ローディングとエラーの状態
   if (loading) {
     return (
       <div className='fixed inset-0 flex items-center justify-center bg-white'>
@@ -243,9 +243,9 @@ function PersonalSite() {
 
   return (
     <div className='fixed inset-0 bg-white'>
-      <div className='flex h-full'>
+      <div className='flex h-full flex-col md:flex-row'>
         {/* サイドバー */}
-        <div className='w-64 bg-white border-r border-gray-100'>
+        <div className='w-full md:w-64 bg-white border-r border-gray-100 mb-6 md:mb-0'>
           <div className='p-6'>
             <h1 className='text-2xl font-bold text-blue-600'>Portfolio</h1>
             <p className='text-gray-500 mt-2 text-sm'>あなたの知的活動を記録</p>
@@ -275,11 +275,11 @@ function PersonalSite() {
 
         {/* メインコンテンツ */}
         <main className='flex-1 bg-gray-50 overflow-auto'>
-          <div className='max-w-3xl mx-auto py-6 px-8'>
-            {/* 読書記録セクション */}
+          <div className='max-w-3xl mx-auto py-6 px-4 sm:px-8'>
+            {/* 本のセクション */}
             {currentSection === 'books' && (
               <div className='space-y-6'>
-                <h2 className='text-2xl font-bold text-gray-900'>読書記録</h2>
+                <h2 className='text-2xl font-bold text-gray-900'>本</h2>
                 <div className='space-y-4'>
                   {books.map((book) => (
                     <div
@@ -343,10 +343,10 @@ function PersonalSite() {
               </div>
             )}
 
-            {/* 良記事セクション */}
+            {/* 記事のセクション */}
             {currentSection === 'articles' && (
               <div className='space-y-6'>
-                <h2 className='text-2xl font-bold text-gray-900'>良記事</h2>
+                <h2 className='text-2xl font-bold text-gray-900'>記事</h2>
                 <div className='space-y-4'>
                   {articles.map((article) => (
                     <div
@@ -416,12 +416,10 @@ function PersonalSite() {
               </div>
             )}
 
-            {/* 考えていることセクション */}
+            {/* 考えのセクション */}
             {currentSection === 'thoughts' && (
               <div className='space-y-6'>
-                <h2 className='text-2xl font-bold text-gray-900'>
-                  考えていること
-                </h2>
+                <h2 className='text-2xl font-bold text-gray-900'>考え</h2>
                 <div className='space-y-4'>
                   {thoughts.map((thought) => (
                     <div
