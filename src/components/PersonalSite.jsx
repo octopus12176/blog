@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
+import { X } from 'lucide-react';
 
 function PersonalSite() {
   const [currentSection, setCurrentSection] = useState('books');
@@ -215,12 +216,13 @@ function PersonalSite() {
   const renderDeleteButton = (onClickHandler) => (
     <button
       onClick={onClickHandler}
-      className='group p-1.5 rounded-full transition-all duration-200 hover:bg-red-50 hover:scale-110'
+      className='group bg-red-50 p-2 rounded-full hover:bg-red-100 transition-colors duration-200'
       aria-label='削除'
     >
-      <span className='text-gray-400 group-hover:text-red-500 transition-colors duration-200 text-sm font-medium'>
-        ✕
-      </span>
+      <X
+        className='text-red-500 group-hover:text-red-600 transition-colors duration-200'
+        size={16}
+      />
     </button>
   );
 
