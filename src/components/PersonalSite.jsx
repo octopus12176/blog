@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
-import { X } from 'lucide-react';
+import { X, Pencil } from 'lucide-react';
 
 function PersonalSite() {
   const [currentSection, setCurrentSection] = useState('books');
@@ -188,6 +188,266 @@ function PersonalSite() {
     }
   };
 
+  // 編集用の状態
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [editType, setEditType] = useState(null);
+
+  // 編集モーダルを開く
+  const openEditModal = (item, type) => {
+    setEditItem({ ...item });
+    setEditType(type);
+    setShowEditModal(true);
+  };
+
+  // 編集モーダルを閉じる
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditItem(null);
+    setEditType(null);
+  };
+
+  // 本の更新
+  const updateBook = async () => {
+    if (!editItem.title) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .update({
+          title: editItem.title,
+          author: editItem.author,
+          thoughts: editItem.thoughts,
+          read_date: editItem.read_date,
+        })
+        .eq('id', editItem.id)
+        .select();
+
+      if (error) throw error;
+
+      setBooks(books.map((book) => (book.id === editItem.id ? data[0] : book)));
+      closeEditModal();
+    } catch (error) {
+      console.error('本の更新に失敗しました:', error);
+      setError('本の更新に失敗しました');
+    }
+  };
+
+  // 記事の更新
+  const updateArticle = async () => {
+    if (!editItem.title) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('articles')
+        .update({
+          title: editItem.title,
+          url: editItem.url,
+          summary: editItem.summary,
+          date_read: editItem.date_read,
+        })
+        .eq('id', editItem.id)
+        .select();
+
+      if (error) throw error;
+
+      setArticles(
+        articles.map((article) =>
+          article.id === editItem.id ? data[0] : article
+        )
+      );
+      closeEditModal();
+    } catch (error) {
+      console.error('記事の更新に失敗しました:', error);
+      setError('記事の更新に失敗しました');
+    }
+  };
+
+  // 考えの更新
+  const updateThought = async () => {
+    if (!editItem.content) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('thoughts')
+        .update({
+          content: editItem.content,
+          date: editItem.date,
+        })
+        .eq('id', editItem.id)
+        .select();
+
+      if (error) throw error;
+
+      setThoughts(
+        thoughts.map((thought) =>
+          thought.id === editItem.id ? data[0] : thought
+        )
+      );
+      closeEditModal();
+    } catch (error) {
+      console.error('考えの更新に失敗しました:', error);
+      setError('考えの更新に失敗しました');
+    }
+  };
+
+  // 編集ボタンのレンダリング
+  const renderEditButton = (item, type) => (
+    <button
+      onClick={() => openEditModal(item, type)}
+      className='group bg-blue-50 p-2 rounded-full hover:bg-blue-100 transition-colors duration-200 mr-2'
+      aria-label='編集'
+    >
+      <Pencil
+        className='text-blue-500 group-hover:text-blue-600 transition-colors duration-200'
+        size={16}
+      />
+    </button>
+  );
+
+  // アイテムのアクションボタン
+  const renderItemActions = (item, type) => {
+    const getDeleteHandler = () => {
+      switch (type) {
+        case 'book':
+          return () => deleteBook(item.id);
+        case 'article':
+          return () => deleteArticle(item.id);
+        case 'thought':
+          return () => deleteThought(item.id);
+        default:
+          return () => {};
+      }
+    };
+
+    return (
+      <div className='flex'>
+        {renderEditButton(item, type)}
+        {renderDeleteButton(getDeleteHandler())}
+      </div>
+    );
+  };
+
+  // 編集モーダルのレンダリング
+  const renderEditModal = () => {
+    if (!showEditModal || !editItem) return null;
+
+    return (
+      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+        <div className='bg-white rounded-lg max-w-md w-full p-6'>
+          <div className='flex justify-between items-center mb-4'>
+            <h3 className='text-lg font-semibold text-gray-900'>
+              {editType === 'book' && '本を編集'}
+              {editType === 'article' && '記事を編集'}
+              {editType === 'thought' && '考えを編集'}
+            </h3>
+            <button
+              onClick={closeEditModal}
+              className='bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 p-2 rounded-full transition-colors'
+              aria-label='閉じる'
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className='space-y-4'>
+            {editType === 'book' && (
+              <>
+                <input
+                  type='text'
+                  placeholder='タイトル'
+                  value={editItem.title}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, title: e.target.value })
+                  }
+                  className='w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900'
+                />
+                <input
+                  type='text'
+                  placeholder='著者'
+                  value={editItem.author}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, author: e.target.value })
+                  }
+                  className='w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900'
+                />
+                <textarea
+                  placeholder='感想'
+                  value={editItem.thoughts}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, thoughts: e.target.value })
+                  }
+                  className='w-full px-3 py-2 rounded-md border border-gray-200 min-h-[100px] bg-white text-gray-900'
+                />
+              </>
+            )}
+
+            {editType === 'article' && (
+              <>
+                <input
+                  type='text'
+                  placeholder='タイトル'
+                  value={editItem.title}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, title: e.target.value })
+                  }
+                  className='w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900'
+                />
+                <input
+                  type='text'
+                  placeholder='URL'
+                  value={editItem.url}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, url: e.target.value })
+                  }
+                  className='w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900'
+                />
+                <textarea
+                  placeholder='要約'
+                  value={editItem.summary}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, summary: e.target.value })
+                  }
+                  className='w-full px-3 py-2 rounded-md border border-gray-200 min-h-[100px] bg-white text-gray-900'
+                />
+              </>
+            )}
+
+            {editType === 'thought' && (
+              <textarea
+                placeholder='考え'
+                value={editItem.content}
+                onChange={(e) =>
+                  setEditItem({ ...editItem, content: e.target.value })
+                }
+                className='w-full px-3 py-2 rounded-md border border-gray-200 min-h-[100px] bg-white text-gray-900'
+              />
+            )}
+
+            <div className='flex justify-end space-x-4'>
+              <button
+                onClick={closeEditModal}
+                className='px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors'
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => {
+                  if (editType === 'book') updateBook();
+                  if (editType === 'article') updateArticle();
+                  if (editType === 'thought') updateThought();
+                }}
+                className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
+              >
+                更新する
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const navItems = [
     {
       id: 'books',
@@ -298,7 +558,7 @@ function PersonalSite() {
                           </p>
                           <p className='text-gray-700'>{book.thoughts}</p>
                         </div>
-                        {renderDeleteButton(() => deleteBook(book.id))}
+                        {renderItemActions(book, 'book')}
                       </div>
                     </div>
                   ))}
@@ -345,6 +605,9 @@ function PersonalSite() {
               </div>
             )}
 
+            {/* 編集モーダル */}
+            {renderEditModal()}
+
             {/* 良記事のセクション */}
             {currentSection === 'articles' && (
               <div className='space-y-6'>
@@ -368,7 +631,9 @@ function PersonalSite() {
                           </p>
                           <p className='text-gray-700'>{article.summary}</p>
                         </div>
-                        {renderDeleteButton(() => deleteArticle(article.id))}
+                        <div className='flex'>
+                          {renderItemActions(article, 'article')}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -437,7 +702,9 @@ function PersonalSite() {
                             {thought.date}
                           </p>
                         </div>
-                        {renderDeleteButton(() => deleteThought(thought.id))}
+                        <div className='flex'>
+                          {renderItemActions(thought, 'thought')}
+                        </div>
                       </div>
                     </div>
                   ))}
