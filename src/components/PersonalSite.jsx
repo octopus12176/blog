@@ -1,34 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../utils/supabase';
 
 function PersonalSite() {
   const [currentSection, setCurrentSection] = useState('books');
-  const [books, setBooks] = useState([
-    {
-      id: 1,
-      title: '人工知能の未来',
-      author: '山田太郎',
-      readDate: '2024年5月',
-      thoughts: '技術の進歩について深く考えさせられた本。',
-    },
-  ]);
-
-  const [articles, setArticles] = useState([
-    {
-      id: 1,
-      title: 'AIと倫理',
-      url: 'https://example.com/ai-ethics',
-      summary: '人工知能の倫理的側面について詳細に論じた記事',
-      dateRead: '2024年6月10日',
-    },
-  ]);
-
-  const [thoughts, setThoughts] = useState([
-    {
-      id: 1,
-      content: 'テクノロジーは社会をどのように変革できるか、常に考えている。',
-      date: '2024年7月15日',
-    },
-  ]);
+  const [books, setBooks] = useState([]);
+  const [articles, setArticles] = useState([]);
+  const [thoughts, setThoughts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [newBook, setNewBook] = useState({
     title: '',
@@ -46,50 +25,166 @@ function PersonalSite() {
 
   const [newThought, setNewThought] = useState({ content: '' });
 
-  // CRUD operations
-  const addBook = () => {
+  // 初期データの読み込み
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([fetchBooks(), fetchArticles(), fetchThoughts()]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('データの読み込みに失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Books CRUD operations
+  const fetchBooks = async () => {
+    const { data, error } = await supabase
+      .from('books')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    setBooks(data);
+  };
+
+  const addBook = async () => {
     if (!newBook.title) return;
-    const book = {
-      id: Date.now(),
-      ...newBook,
-      readDate: newBook.readDate || new Date().toLocaleDateString(),
-    };
-    setBooks([book, ...books]);
-    setNewBook({ title: '', author: '', readDate: '', thoughts: '' });
+
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .insert([
+          {
+            title: newBook.title,
+            author: newBook.author,
+            read_date: newBook.readDate || new Date().toISOString(),
+            thoughts: newBook.thoughts,
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+
+      setBooks([data[0], ...books]);
+      setNewBook({ title: '', author: '', readDate: '', thoughts: '' });
+    } catch (error) {
+      console.error('Error adding book:', error);
+      setError('本の追加に失敗しました');
+    }
   };
 
-  const deleteBook = (id) => {
-    setBooks(books.filter((book) => book.id !== id));
+  const deleteBook = async (id) => {
+    try {
+      const { error } = await supabase.from('books').delete().eq('id', id);
+
+      if (error) throw error;
+      setBooks(books.filter((book) => book.id !== id));
+    } catch (error) {
+      console.error('Error deleting book:', error);
+      setError('本の削除に失敗しました');
+    }
   };
 
-  const addArticle = () => {
+  // Articles CRUD operations
+  const fetchArticles = async () => {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    setArticles(data);
+  };
+
+  const addArticle = async () => {
     if (!newArticle.title) return;
-    const article = {
-      id: Date.now(),
-      ...newArticle,
-      dateRead: newArticle.dateRead || new Date().toLocaleDateString(),
-    };
-    setArticles([article, ...articles]);
-    setNewArticle({ title: '', url: '', summary: '', dateRead: '' });
+
+    try {
+      const { data, error } = await supabase
+        .from('articles')
+        .insert([
+          {
+            title: newArticle.title,
+            url: newArticle.url,
+            summary: newArticle.summary,
+            date_read: newArticle.dateRead || new Date().toISOString(),
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+
+      setArticles([data[0], ...articles]);
+      setNewArticle({ title: '', url: '', summary: '', dateRead: '' });
+    } catch (error) {
+      console.error('Error adding article:', error);
+      setError('記事の追加に失敗しました');
+    }
   };
 
-  const deleteArticle = (id) => {
-    setArticles(articles.filter((article) => article.id !== id));
+  const deleteArticle = async (id) => {
+    try {
+      const { error } = await supabase.from('articles').delete().eq('id', id);
+
+      if (error) throw error;
+      setArticles(articles.filter((article) => article.id !== id));
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      setError('記事の削除に失敗しました');
+    }
   };
 
-  const addThought = () => {
+  // Thoughts CRUD operations
+  const fetchThoughts = async () => {
+    const { data, error } = await supabase
+      .from('thoughts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    setThoughts(data);
+  };
+
+  const addThought = async () => {
     if (!newThought.content) return;
-    const thought = {
-      id: Date.now(),
-      content: newThought.content,
-      date: new Date().toLocaleDateString(),
-    };
-    setThoughts([thought, ...thoughts]);
-    setNewThought({ content: '' });
+
+    try {
+      const { data, error } = await supabase
+        .from('thoughts')
+        .insert([
+          {
+            content: newThought.content,
+            date: new Date().toISOString(),
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+
+      setThoughts([data[0], ...thoughts]);
+      setNewThought({ content: '' });
+    } catch (error) {
+      console.error('Error adding thought:', error);
+      setError('考えの追加に失敗しました');
+    }
   };
 
-  const deleteThought = (id) => {
-    setThoughts(thoughts.filter((thought) => thought.id !== id));
+  const deleteThought = async (id) => {
+    try {
+      const { error } = await supabase.from('thoughts').delete().eq('id', id);
+
+      if (error) throw error;
+      setThoughts(thoughts.filter((thought) => thought.id !== id));
+    } catch (error) {
+      console.error('Error deleting thought:', error);
+      setError('考えの削除に失敗しました');
+    }
   };
 
   const navItems = [
@@ -128,6 +223,23 @@ function PersonalSite() {
       </span>
     </button>
   );
+
+  // Loading and error states
+  if (loading) {
+    return (
+      <div className='fixed inset-0 flex items-center justify-center bg-white'>
+        <div className='text-lg text-gray-600'>読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='fixed inset-0 flex items-center justify-center bg-white'>
+        <div className='text-lg text-red-600'>{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className='fixed inset-0 bg-white'>
@@ -180,7 +292,7 @@ function PersonalSite() {
                             {book.title}
                           </h3>
                           <p className='text-sm text-gray-500'>
-                            {book.author} - {book.readDate}
+                            {book.author} - {book.read_date}
                           </p>
                           <p className='text-gray-700'>{book.thoughts}</p>
                         </div>
@@ -250,7 +362,7 @@ function PersonalSite() {
                             {article.title}
                           </a>
                           <p className='text-sm text-gray-500'>
-                            {article.dateRead}
+                            {article.date_read}
                           </p>
                           <p className='text-gray-700'>{article.summary}</p>
                         </div>
